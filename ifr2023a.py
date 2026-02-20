@@ -360,6 +360,81 @@ class IFR2023A:
         """Reset sweep to start value."""
         self.write("SWEEP:RESET")
 
+    # ── Frequency Standard Calibration (DIAG:CAL:FST) ────────────────
+    # Requires Level 2 unlock via front panel: UTIL 80, password 123456
+    # Reference: Service Manual — UTIL 102 (Frequency Standard Calibration)
+
+    def cal_fst_init(self):
+        """Enter frequency standard calibration mode.
+
+        The synthesizer switches to 1200 MHz output internally.
+        RF output should be turned OFF before calling this to avoid
+        feeding 1200 MHz into the ADC.
+        """
+        self.write("DIAG:CAL:FST:INIT")
+        time.sleep(1.0)  # PLL reconfiguration
+
+    def cal_fst_set_coarse_dac(self, value: int):
+        """Set the coarse DAC for TCXO tuning.
+
+        Args:
+            value: DAC value 0-255
+        """
+        if not 0 <= value <= 255:
+            raise ValueError(f"Coarse DAC value {value} out of range [0, 255]")
+        self.write(f"DIAG:CAL:FST:CDAC {value}")
+
+    def cal_fst_set_fine_dac(self, value: int):
+        """Set the fine DAC for TCXO tuning.
+
+        Args:
+            value: DAC value 0-255
+        """
+        if not 0 <= value <= 255:
+            raise ValueError(f"Fine DAC value {value} out of range [0, 255]")
+        self.write(f"DIAG:CAL:FST:FDAC {value}")
+
+    def cal_fst_get_coarse_dac(self) -> int:
+        """Query current coarse DAC value.
+
+        Returns:
+            int: DAC value 0-255
+        """
+        return int(self.query("DIAG:CAL:FST:CDAC?"))
+
+    def cal_fst_get_fine_dac(self) -> int:
+        """Query current fine DAC value.
+
+        Returns:
+            int: DAC value 0-255
+        """
+        return int(self.query("DIAG:CAL:FST:FDAC?"))
+
+    def cal_fst_save(self):
+        """Save calibration to EEPROM and exit calibration mode.
+
+        This writes the current CDAC/FDAC values to non-volatile memory
+        and returns the synthesizer to normal operation.
+        """
+        self.write("DIAG:CAL:FST:SAVE")
+        time.sleep(2.0)  # EEPROM write + PLL reconfiguration
+
+    def cal_fst_quit(self):
+        """Exit calibration mode without saving.
+
+        Discards any DAC changes and returns to normal operation.
+        """
+        self.write("DIAG:CAL:FST:QUIT")
+        time.sleep(1.0)  # PLL reconfiguration
+
+    def cal_fst_get_date(self) -> str:
+        """Query the date of last frequency standard calibration.
+
+        Returns:
+            str: Calibration date string
+        """
+        return self.query("DIAG:CAL:FST:DATE?")
+
     # ── Raw command passthrough ───────────────────────────────────────
 
     def send(self, cmd: str):
