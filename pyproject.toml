@@ -1,0 +1,16 @@
+[project]
+name = "ifr2023a-tui"
+version = "0.1.0"
+description = "TUI control panel for IFR 2023A signal generator"
+requires-python = ">=3.10"
+dependencies = [
+    "textual>=1.0.0",
+    "pyserial>=3.5",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project.scripts]
+ifr2023a-tui = "ifr2023a_tui:main"
