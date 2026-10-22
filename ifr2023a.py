@@ -38,12 +38,14 @@ class IFR2023A:
         Open RS-232 connection to the IFR 2023A.
 
         Args:
-            port: Serial port device (e.g. /dev/ttyUSB0, COM3)
+            port: Serial port device (e.g. /dev/ttyUSB0, COM3) or pyserial URL,
+                  e.g. socket://192.168.2.5:4001 for an instrument behind the
+                  ser2net relay on the Raspberry Pi
             baudrate: Baud rate (max 9600 for this instrument)
             timeout: Read timeout in seconds
         """
-        self.ser = serial.Serial(
-            port=port,
+        self.ser = serial.serial_for_url(
+            port,
             baudrate=baudrate,
             bytesize=serial.EIGHTBITS,
             parity=serial.PARITY_NONE,
@@ -463,7 +465,7 @@ Examples:
   %(prog)s --raw "CFRQ?"
 """,
     )
-    parser.add_argument("--port", default="/dev/ttyUSB0", help="Serial port (default: /dev/ttyUSB0)")
+    parser.add_argument("--port", default="/dev/ttyUSB0", help="Serial port or URL, e.g. socket://192.168.2.5:4001 (default: /dev/ttyUSB0)")
     parser.add_argument("--baud", type=int, default=9600, help="Baud rate (default: 9600)")
 
     parser.add_argument("--idn", action="store_true", help="Query instrument identification")
